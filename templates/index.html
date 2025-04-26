@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Operation with API</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css">
+
+    <style>
+        .height10 { height: 10px; }
+        .mtop10 { margin-top: 10px; }
+        .modal-label { position: relative; top: 7px; }
+        .PP { text-align: center; margin-top: 20px; color: gray; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="page-header text-center">CRUD Operation With API and DataTable</h1>
+
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+
+            <div class="row mtop10">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">
+                    <span class="glyphicon glyphicon-plus"></span> New
+                </button>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#addProgramModal">
+                    <span class="glyphicon glyphicon-plus"></span> Program
+                </button>                
+                <a href="#" class="btn btn-success pull-right">
+                    <span class="glyphicon glyphicon-print"></span> PDF
+                </a>
+            </div>
+
+            <div class="height10"></div>
+
+            <div class="row">
+                <table id="myTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>First Name</th>
+                            <th>Second Name</th>
+                            <th>Job</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="addModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <form id="addUserForm">
+          <div class="modal-header">
+            <h4 class="modal-title">Add New User</h4>
+          </div>
+          <div class="modal-body">
+            <input type="text" name="first_name" class="form-control" placeholder="First Name" required><br>
+            <input type="text" name="second_name" class="form-control" placeholder="Second Name" required><br>
+            <input type="text" name="job" class="form-control" placeholder="Job" required><br>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <form id="editUserForm">
+          <div class="modal-header">
+            <h4 class="modal-title">Edit User</h4>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="id">
+            <input type="text" name="first_name" class="form-control" placeholder="First Name" required><br>
+            <input type="text" name="second_name" class="form-control" placeholder="Second Name" required><br>
+            <input type="text" name="job" class="form-control" placeholder="Job" required><br>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Update</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete User Modal -->
+<div id="deleteModal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete User</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this user?</p>
+        <input type="hidden" id="deleteUserId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="confirmDelete">Yes</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Program Modal -->
+<div id="addProgramModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+  
+      <div class="modal-content">
+        <form id="addProgramForm">
+            <div class="modal-header">
+              <h4 class="modal-title">Add New Program</h4>
+            </div>
+            <div class="modal-body">
+              <input type="text" name="program_name" class="form-control" placeholder="Program Name" required><br>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+      </div>
+  
+    </div>
+  </div>
+  
+
+<footer>
+    <div class="PP">
+        <p>Brought To You By: <a href="https://code-projects.org/">code-projects.org</a></p>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+
+<script>
+let table;
+
+function loadTable() {
+    fetch('/users')
+        .then(response => response.json())
+        .then(data => {
+            let rows = '';
+            data.data.forEach(user => {
+                rows += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.first_name}</td>
+                        <td>${user.second_name}</td>
+                        <td>${user.job}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="openEditModal(${user.id}, '${user.first_name}', '${user.second_name}', '${user.job}')">
+                                <span class="glyphicon glyphicon-edit"></span> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${user.id})">
+                                <span class="glyphicon glyphicon-trash"></span> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#myTable tbody').html(rows);
+            if ( $.fn.DataTable.isDataTable('#myTable') ) {
+                table.destroy();
+            }
+            table = $('#myTable').DataTable();
+        });
+}
+
+// Open Edit Modal
+function openEditModal(id, first_name, second_name, job) {
+    $('#editUserForm [name="id"]').val(id);
+    $('#editUserForm [name="first_name"]').val(first_name);
+    $('#editUserForm [name="second_name"]').val(second_name);
+    $('#editUserForm [name="job"]').val(job);
+    $('#editModal').modal('show');
+}
+
+// Open Delete Modal
+function openDeleteModal(id) {
+    $('#deleteUserId').val(id);
+    $('#deleteModal').modal('show');
+}
+
+// Handle Add User
+$('#addUserForm').submit(function(e){
+    e.preventDefault();
+    const data = {
+        first_name: this.first_name.value,
+        second_name: this.second_name.value,
+        job: this.job.value
+    };
+    fetch('/users', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+    .then(response => {
+        $('#addModal').modal('hide');
+        loadTable();
+    });
+});
+
+// Handle Edit User
+$('#editUserForm').submit(function(e){
+    e.preventDefault();
+    const id = this.id.value;
+    const data = {
+        first_name: this.first_name.value,
+        second_name: this.second_name.value,
+        job: this.job.value
+    };
+    fetch('/users/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+    .then(response => {
+        $('#editModal').modal('hide');
+        loadTable();
+    });
+});
+
+// Handle Delete User
+$('#confirmDelete').click(function(){
+    const id = $('#deleteUserId').val();
+    fetch('/users/' + id, {
+        method: 'DELETE'
+    }).then(res => res.json())
+    .then(response => {
+        $('#deleteModal').modal('hide');
+        loadTable();
+    });
+});
+
+$(document).ready(function(){
+    loadTable();
+});
+
+// Handle Add Program
+$('#addProgramForm').submit(function(e){
+    e.preventDefault();
+    const data = {
+        program_name: this.program_name.value
+    };
+    fetch('/programs', {   // Assuming your API endpoint for programs is /programs
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+    .then(response => {
+        $('#addProgramModal').modal('hide');
+        this.reset(); // Clear the form
+        // Optionally, reload or update your program list here if needed
+    });
+});
+
+</script>
+
+</body>
+</html>

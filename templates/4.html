@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Health Information System</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .mtop10 {
+            margin-top: 10px;
+        }
+        .height10 {
+            height: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <h1 class="text-center">Client Health Information System</h1>
+
+    <!-- Add New Client and Program Buttons -->
+    <div class="text-center mtop10">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#addClientModal">
+            <span class="glyphicon glyphicon-user"></span> Add New Client
+        </button>
+        <button class="btn btn-success" data-toggle="modal" data-target="#addProgramModal">
+            <span class="glyphicon glyphicon-plus"></span> Add New Program
+        </button>
+    </div>
+
+    <!-- Table displaying clients from API -->
+    <div class="height10"></div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-bordered table-striped" id="clientTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Second Name</th>
+                        <th>Job</th>
+                        <th>Enrolled Programs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="clientTableBody">
+                    <!-- Clients will be dynamically added here from the API -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Search Bar for Profile -->
+    <div class="text-center mtop10">
+        <button class="btn btn-info" onclick="$('#viewProfileModal').modal('show')">
+            <span class="glyphicon glyphicon-search"></span> View Client Profile
+        </button>
+    </div>
+
+    <!-- Profile Result will be displayed here -->
+    <div id="profileResult"></div>
+
+</div>
+
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addClientModalLabel">Add New Client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Add Client Form -->
+                <form id="addClientForm">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="Enter First Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondName">Second Name</label>
+                        <input type="text" class="form-control" id="secondName" placeholder="Enter Second Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="job">Job</label>
+                        <input type="text" class="form-control" id="job" placeholder="Enter Job Title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="programs">Enrolled Programs</label>
+                        <select multiple class="form-control" id="programs">
+                            <option value="TB">TB</option>
+                            <option value="Malaria">Malaria</option>
+                            <option value="HIV">HIV</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Client</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Program Modal -->
+<div class="modal fade" id="addProgramModal" tabindex="-1" role="dialog" aria-labelledby="addProgramModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProgramModalLabel">Add New Program</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Add Program Form -->
+                <form id="addProgramForm">
+                    <div class="form-group">
+                        <label for="programName">Program Name</label>
+                        <input type="text" class="form-control" id="programName" placeholder="Enter Program Name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Program</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Client Profile Modal -->
+<div class="modal fade" id="viewProfileModal" tabindex="-1" role="dialog" aria-labelledby="viewProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewProfileModalLabel">Search Client by ID</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Client Search Form -->
+                <div class="form-group">
+                    <label for="profileUserId">Client ID</label>
+                    <input type="text" class="form-control" id="profileUserId" placeholder="Enter Client ID" required>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="viewProfile()">View Profile</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+<script>
+    // Fetch and display client data from the API
+    function fetchClients() {
+        $.get("/users", function(data) {
+            const clients = data.data;
+            let rows = "";
+            clients.forEach(client => {
+                let enrolledPrograms = client.enrolled_programs.join(', ') || "No programs enrolled";
+                rows += `
+                    <tr>
+                        <td>${client.id}</td>
+                        <td>${client.first_name}</td>
+                        <td>${client.second_name}</td>
+                        <td>${client.job}</td>
+                        <td>${enrolledPrograms}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" onclick="viewProfile(${client.id})">View</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#clientTableBody').html(rows);
+        });
+    }
+
+    // View Profile Function
+    function viewProfile(clientId) {
+        $.get(`/users/${clientId}`, function(data) {
+            let programsList = '<ul class="list-group">';
+            if (data.enrolled_programs.length > 0) {
+                data.enrolled_programs.forEach(program => {
+                    programsList += `<li class="list-group-item">${program}</li>`;
+                });
+            } else {
+                programsList += `<li class="list-group-item">No programs enrolled</li>`;
+            }
+            programsList += '</ul>';
+
+            $('#profileResult').html(`
+                <div class="panel panel-default">
+                    <div class="panel-heading"><strong>Client Profile</strong></div>
+                    <div class="panel-body">
+                        <p><strong>Name:</strong> ${data.first_name} ${data.second_name}</p>
+                        <p><strong>Job:</strong> ${data.job}</p>
+                        <p><strong>Enrolled Programs:</strong></p>
+                        ${programsList}
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    // Handle Add Client Form Submission
+    $('#addClientForm').submit(function(event) {
+        event.preventDefault();
+
+        const clientData = {
+            first_name: $('#firstName').val(),
+            second_name: $('#secondName').val(),
+            job: $('#job').val(),
+            enrolled_programs: $('#programs').val()
+        };
+
+        $.ajax({
+            url: '/users',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(clientData),
+            success: function(response) {
+                alert('Client added successfully');
+                $('#addClientModal').modal('hide');
+                fetchClients(); // Reload client table
+            },
+            error: function(err) {
+                alert('Error adding client');
+            }
+        });
+    });
+
+    // Handle Add Program Form Submission
+    $('#addProgramForm').submit(function(event) {
+        event.preventDefault();
+
+        const programData = {
+            program_name: $('#programName').val()
+        };
+
+        $.ajax({
+            url: '/programs',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(programData),
+            success: function(response) {
+                alert('Program added successfully');
+                $('#addProgramModal').modal('hide');
+            },
+            error: function(err) {
+                alert('Error adding program');
+            }
+        });
+    });
+
+    // Fetch clients on page load
+    $(document).ready(function() {
+        fetchClients();
+    });
+</script>
+
+</body>
+</html>

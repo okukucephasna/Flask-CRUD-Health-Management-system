@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Health Information System</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <style>
+        .height10 { height: 10px; }
+        .mtop10 { margin-top: 10px; }
+        .modal-label { position: relative; top: 7px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="page-header text-center">Client and Health Program Management</h1>
+
+    <!-- Clients Table -->
+    <div class="row">
+        <table id="clientsTable" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Job</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="clientsBody">
+                <!-- Populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add New Client -->
+    <div class="row">
+        <h3>Add New Client</h3>
+        <input type="text" id="firstName" placeholder="First Name">
+        <input type="text" id="secondName" placeholder="Second Name">
+        <input type="text" id="job" placeholder="Job">
+        <button onclick="addClient()" class="btn btn-primary">Add Client</button>
+    </div>
+
+    <hr>
+
+    <!-- Add Program -->
+    <div class="row">
+        <h3>Create New Program</h3>
+        <input type="text" id="programName" placeholder="Program Name">
+        <button onclick="addProgram()" class="btn btn-success">Add Program</button>
+    </div>
+
+    <hr>
+
+    <!-- Enroll Client -->
+    <div class="row">
+        <h3>Enroll Client in Program</h3>
+        <input type="number" id="enrollUserId" placeholder="Client ID">
+        <input type="number" id="enrollProgramId" placeholder="Program ID">
+        <button onclick="enrollClient()" class="btn btn-warning">Enroll</button>
+    </div>
+
+    <hr>
+
+    <!-- View Client Profile -->
+    <div class="row">
+        <h3>View Client Profile</h3>
+        <input type="number" id="profileUserId" placeholder="Client ID">
+        <button onclick="viewProfile()" class="btn btn-info">View Profile</button>
+
+        <div id="profileResult" class="mtop10"></div>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+function fetchClients() {
+    $.get('/users', function(data) {
+        let body = '';
+        data.data.forEach(client => {
+            body += `<tr>
+                        <td>${client.id}</td>
+                        <td>${client.first_name}</td>
+                        <td>${client.second_name}</td>
+                        <td>${client.job}</td>
+                        <td><button onclick="viewProfileById(${client.id})" class="btn btn-info btn-sm">Profile</button></td>
+                    </tr>`;
+        });
+        $('#clientsBody').html(body);
+    });
+}
+
+function addClient() {
+    $.post('/users', JSON.stringify({
+        first_name: $('#firstName').val(),
+        second_name: $('#secondName').val(),
+        job: $('#job').val()
+    }), function() {
+        alert('Client Added!');
+        fetchClients();
+    }, 'json');
+}
+
+function addProgram() {
+    $.post('/programs', JSON.stringify({
+        program_name: $('#programName').val()
+    }), function() {
+        alert('Program Added!');
+    }, 'json');
+}
+
+function enrollClient() {
+    $.post('/enroll', JSON.stringify({
+        user_id: $('#enrollUserId').val(),
+        program_id: $('#enrollProgramId').val()
+    }), function() {
+        alert('Client Enrolled!');
+    }, 'json');
+}
+
+function viewProfile() {
+    const userId = $('#profileUserId').val();
+    viewProfileById(userId);
+}
+
+function viewProfileById(userId) {
+    $.get(`/users/${userId}`, function(data) {
+        $('#profileResult').html(`
+            <h4>Profile:</h4>
+            <p><strong>Name:</strong> ${data.first_name} ${data.second_name}</p>
+            <p><strong>Job:</strong> ${data.job}</p>
+            <p><strong>Enrolled Programs:</strong> ${data.enrolled_programs.join(', ')}</p>
+        `);
+    });
+}
+
+$(document).ready(function() {
+    fetchClients();
+});
+</script>
+</body>
+</html>
