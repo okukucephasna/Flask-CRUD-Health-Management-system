@@ -1,5 +1,5 @@
 # Flask-CRUD-Health-Management-system
- This system demos the use of flask in the form of an API, that is supplying a frontend interface with patient data from the database whch is mysql and also enabling the user to interact with the database from the fro tend interface
+ This system demos the use of flask in the form of an API, that is supplying a frontend interface with patient data from the database whch is mysql and also enabling the user to interact with the database from the fro tend interface.
 This is a simple CRUD web application built with Flask, Bootstrap, and DataTables.
 It allows doctors (or users) to:
 
