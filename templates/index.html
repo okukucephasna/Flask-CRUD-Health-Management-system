@@ -27,21 +27,19 @@
 
             <div class="row mtop10">
                 <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">
-                    <span class="glyphicon glyphicon-plus"></span> New
+                    <span class="glyphicon glyphicon-plus"></span>Add client
                 </button>
                 <button class="btn btn-primary" data-toggle="modal" data-target="#addProgramModal">
-                    <span class="glyphicon glyphicon-plus"></span> Program
+                    <span class="glyphicon glyphicon-plus"></span>Add Program
                 </button>                
-                <a href="#" class="btn btn-success pull-right">
-                    <span class="glyphicon glyphicon-print"></span> PDF
-                </a>
+                
             </div>
 
             <div class="height10"></div>
 
             <div class="row">
                 <table id="myTable" class="table table-bordered table-striped">
-                    <thead>
+                  <thead>
                         <tr>
                             <th>ID</th>
                             <th>First Name</th>
@@ -49,6 +47,7 @@
                             <th>Job</th>
                             <th>Action</th>
                         </tr>
+                        
                     </thead>
                     <tbody>
                         <!-- Data dynamically inserted here -->
@@ -152,6 +151,31 @@
   
     </div>
   </div>
+  <!-- Enroll Client Modal -->
+<div id="enrollModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <form id="enrollForm">
+          <div class="modal-header">
+            <h4 class="modal-title">Enroll Client Into Program</h4>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="user_id">
+            <select name="program_id" class="form-control" required>
+                <!-- This will be dynamically filled with program options -->
+            </select><br>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Enroll</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
   
 
 <footer>
@@ -187,12 +211,16 @@ function loadTable() {
                         <td>${user.job}</td>
                         <td>
                             <button class="btn btn-success btn-sm" onclick="openEditModal(${user.id}, '${user.first_name}', '${user.second_name}', '${user.job}')">
-                                <span class="glyphicon glyphicon-edit"></span> Edit
+                                <span class="glyphicon glyphicon-edit"></span> View
                             </button>
+                            <button class="btn btn-primary btn-sm" onclick="openEnrollModal(${user.id})">
+                        <span class="glyphicon glyphicon-briefcase"></span> Enroll
+                       </button>
                             <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${user.id})">
                                 <span class="glyphicon glyphicon-trash"></span> Delete
                             </button>
                         </td>
+                        
                     </tr>
                 `;
             });
@@ -291,6 +319,41 @@ $('#addProgramForm').submit(function(e){
         // Optionally, reload or update your program list here if needed
     });
 });
+// Open Enroll Modal
+function openEnrollModal(userId) {
+    $('#enrollForm [name="user_id"]').val(userId);
+
+    // Fetch available programs from API
+    fetch('/programs') 
+        .then(response => response.json())
+        .then(data => {
+            const programSelect = $('#enrollForm [name="program_id"]');
+            programSelect.empty();
+            data.data.forEach(program => {
+                programSelect.append(`<option value="${program.id}">${program.program_name}</option>`);
+            });
+            $('#enrollModal').modal('show');
+        });
+}
+
+// Handle Enroll Form Submit
+$('#enrollForm').submit(function(e){
+    e.preventDefault();
+    const data = {
+        user_id: this.user_id.value,
+        program_id: this.program_id.value
+    };
+    fetch('/enrollments', { 
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+    .then(response => {
+        $('#enrollModal').modal('hide');
+        loadTable(); // Reload the table to show updated enrollments
+    });
+});
+
 
 </script>
 
